@@ -1,0 +1,54 @@
+---
+import BrandMark from "@/components/BrandMark.astro";
+import Icon from "@/components/Icon.astro";
+import "@/styles/global.css";
+
+interface Props {
+  title?: string;
+  shell?: "auth" | "app";
+  current?: "home" | "settings" | "none";
+}
+
+const { title = "Bank of Dad", shell = "app", current = "none" } = Astro.props;
+const pageTitle = title === "Bank of Dad" ? title : `${title} - Bank of Dad`;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#0E1726">
+    <meta name="description" content="A private family chore and spending ledger.">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <title>{pageTitle}</title>
+  </head>
+  <body class:list={[shell === "auth" ? "auth-page" : "app-page"]}>
+    {shell === "app" ? (
+      <div class="app-shell">
+        <header class="app-header">
+          <a class="app-header__brand" href="/" aria-label="Bank of Dad home">
+            <BrandMark size="sm" />
+          </a>
+          <nav class="app-nav" aria-label="Primary">
+            <a class:list={[current === "home" && "is-active"]} href="/">
+              <Icon name="home" />
+              <span>Home</span>
+            </a>
+            <a class:list={[current === "settings" && "is-active"]} href="/settings">
+              <Icon name="settings" />
+              <span>Settings</span>
+            </a>
+          </nav>
+        </header>
+        <slot />
+      </div>
+    ) : (
+      <main class="auth-shell">
+        <slot />
+      </main>
+    )}
+  </body>
+</html>

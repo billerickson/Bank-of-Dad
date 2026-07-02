@@ -1,0 +1,18 @@
+{
+  "name": "Bank of Dad",
+  "short_name": "BOD",
+  "description": "A private family chore and spending ledger.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F7F5EF",
+  "theme_color": "#0E1726",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

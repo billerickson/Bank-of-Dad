@@ -1,19 +1,15 @@
 ---
+import AppLayout from "@/layouts/AppLayout.astro";
+
 export const prerender = false;
 ---
 
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="robots" content="noindex, nofollow">
-    <title>Bank of Dad</title>
-  </head>
-  <body>
-    <main>
+<AppLayout title="Bank of Dad" current="home">
+  <section class="panel stack">
+    <p class="eyebrow">Vault Ledger</p>
+    <div class="page-heading">
       <h1>Bank of Dad</h1>
-      <p>Astro scaffold is ready.</p>
-    </main>
-  </body>
-</html>
+      <p>The branded shell is ready for app flows.</p>
+    </div>
+  </section>
+</AppLayout>
