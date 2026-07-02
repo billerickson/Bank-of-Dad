@@ -92,23 +92,28 @@ wrangler types && astro check && astro build
 
 The project is prepared for Cloudflare Workers. Current Astro Cloudflare docs recommend Workers for new full-stack Astro apps.
 
+This repo is configured for Bill's deployment with:
+
+- Worker name: `bank-of-dad`
+- D1 database: `bank-of-dad`
+- D1 binding: `DB`
+- Custom domain route: `bod.billerickson.net`
+
+For another family's fork, create a new D1 database and replace the `database_id` in `wrangler.jsonc`.
+
 1. Log in:
 
 ```sh
 npx wrangler login
 ```
 
-2. Create the production D1 database:
+2. Create the production D1 database if this is a new deployment:
 
 ```sh
 npx wrangler d1 create bank-of-dad
 ```
 
-3. Copy the returned `database_id` into `wrangler.jsonc`, replacing:
-
-```json
-"database_id": "00000000-0000-0000-0000-000000000000"
-```
+3. Copy the returned `database_id` into `wrangler.jsonc`.
 
 4. Set the production session secret:
 
@@ -128,7 +133,20 @@ npm run db:migrate:remote
 npm run deploy
 ```
 
-7. Add the custom domain `bod.billerickson.net` to the deployed Worker in the Cloudflare dashboard:
+7. Confirm the custom domain `bod.billerickson.net` is active.
+
+The repo includes this Wrangler route:
+
+```json
+"routes": [
+  {
+    "pattern": "bod.billerickson.net",
+    "custom_domain": true
+  }
+]
+```
+
+If Cloudflare cannot attach the custom domain during deploy, add it from the dashboard:
 
 - Open Cloudflare Dashboard
 - Go to Workers & Pages

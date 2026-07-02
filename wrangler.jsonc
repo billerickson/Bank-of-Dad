@@ -6,11 +6,20 @@
   "observability": {
     "enabled": true
   },
+  "routes": [
+    {
+      "pattern": "bod.billerickson.net",
+      "custom_domain": true
+    }
+  ],
+  "secrets": {
+    "required": ["SESSION_SECRET"]
+  },
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "bank-of-dad",
-      "database_id": "00000000-0000-0000-0000-000000000000"
+      "database_id": "93674c92-871f-41b6-8fd7-5f89ed16de34"
     }
   ]
 }
