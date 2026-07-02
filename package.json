@@ -1,0 +1,26 @@
+{
+  "name": "bank-of-dad",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler types && astro dev",
+    "start": "npm run dev",
+    "build": "wrangler types && astro check && astro build",
+    "preview": "wrangler types && astro preview",
+    "deploy": "npm run build && wrangler deploy",
+    "db:migrate:local": "wrangler d1 execute bank-of-dad --file=./migrations/0001_schema.sql --local",
+    "db:migrate:remote": "wrangler d1 execute bank-of-dad --file=./migrations/0001_schema.sql --remote",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/cloudflare": "^14.1.1",
+    "astro": "^7.0.6"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.9",
+    "@types/node": "^26.1.0",
+    "typescript": "^6.0.3",
+    "wrangler": "^4.107.0"
+  }
+}
