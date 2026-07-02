@@ -1,0 +1,101 @@
+---
+import Icon from "@/components/Icon.astro";
+import AppLayout from "@/layouts/AppLayout.astro";
+import { addTransaction, getKidSummary } from "@/lib/db";
+import { isIsoDate, parseMoneyToCents, todayIsoDate } from "@/lib/format";
+
+export const prerender = false;
+
+const kidId = Astro.params.kidId ?? "";
+const kid = await getKidSummary(kidId);
+const queryType = new URL(Astro.request.url).searchParams.get("type");
+const initialType = queryType === "spend" ? "spend" : "save";
+
+let type: "save" | "spend" = initialType;
+let amount = "";
+let description = "";
+let date = todayIsoDate();
+let error = "";
+
+if (!kid) {
+  Astro.response.status = 404;
+} else if (Astro.request.method === "POST") {
+  const form = await Astro.request.formData();
+  type = form.get("type") === "spend" ? "spend" : "save";
+  amount = String(form.get("amount") ?? "");
+  description = String(form.get("description") ?? "").trim();
+  date = String(form.get("date") ?? todayIsoDate());
+
+  const amountCents = parseMoneyToCents(amount);
+
+  if (!amountCents) {
+    error = "Enter an amount greater than $0.00.";
+  } else if (!description) {
+    error = "Enter a short description.";
+  } else if (!isIsoDate(date)) {
+    error = "Enter a valid date.";
+  } else {
+    await addTransaction({
+      kidId: kid.id,
+      type,
+      amountCents,
+      description,
+      date
+    });
+    return Astro.redirect(`/kids/${kid.id}`, 303);
+  }
+}
+
+const title = type === "save" ? "Add save" : "Add spend";
+---
+
+<AppLayout title={kid ? title : "Kid not found"} current="home">
+  {kid ? (
+    <main class="stack">
+      <a class="back-link" href={`/kids/${kid.id}`}>
+        <Icon name="back" />
+        {kid.name}
+      </a>
+
+      <section class="panel stack transaction-form-card">
+        <div class="page-heading">
+          <p class="eyebrow">{type === "save" ? "Save" : "Spend"}</p>
+          <h1>{title} for {kid.name}</h1>
+          <p>{type === "save" ? "Record money added to the ledger." : "Record money spent from the ledger."}</p>
+        </div>
+
+        {error && <p class="alert alert--error">{error}</p>}
+
+        <form class="form-grid" method="post">
+          <input type="hidden" name="type" value={type}>
+          <label class="field">
+            <span>Amount</span>
+            <input name="amount" inputmode="decimal" placeholder="0.00" value={amount} required>
+          </label>
+          <label class="field">
+            <span>Description</span>
+            <input name="description" value={description} placeholder="Lemonade stand" required>
+          </label>
+          <label class="field">
+            <span>Date</span>
+            <input name="date" type="date" value={date} required>
+          </label>
+          <div class="actions">
+            <a class="button button--secondary" href={`/kids/${kid.id}`}>Cancel</a>
+            <button class:list={[type === "save" ? "save" : "spend"]} type="submit">
+              <Icon name={type === "save" ? "save" : "spend"} />
+              {type === "save" ? "Add save" : "Add spend"}
+            </button>
+          </div>
+        </form>
+      </section>
+    </main>
+  ) : (
+    <main class="panel empty-state">
+      <Icon name="kid" />
+      <h1>Kid not found</h1>
+      <p>This account does not exist or has been archived.</p>
+      <a class="button" href="/">Back to accounts</a>
+    </main>
+  )}
+</AppLayout>

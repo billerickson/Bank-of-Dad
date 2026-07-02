@@ -1,0 +1,90 @@
+---
+import Icon from "@/components/Icon.astro";
+import AppLayout from "@/layouts/AppLayout.astro";
+import { getKidSummary, listTransactions } from "@/lib/db";
+import { formatDate, formatMoney } from "@/lib/format";
+
+export const prerender = false;
+
+const kidId = Astro.params.kidId ?? "";
+const kid = await getKidSummary(kidId);
+
+if (!kid) {
+  Astro.response.status = 404;
+}
+
+const transactions = kid ? await listTransactions(kid.id) : [];
+---
+
+<AppLayout title={kid ? kid.name : "Kid not found"} current="home">
+  {kid ? (
+    <main class="stack">
+      <a class="back-link" href="/">
+        <Icon name="back" />
+        Accounts
+      </a>
+
+      <section class="balance-panel">
+        <p class="eyebrow">Current balance</p>
+        <h1>{kid.name}</h1>
+        <p class="balance money">{formatMoney(kid.balance_cents)}</p>
+        <div class="actions">
+          <a class="button button--save" href={`/kids/${kid.id}/new?type=save`}>
+            <Icon name="save" />
+            Save
+          </a>
+          <a class="button button--spend" href={`/kids/${kid.id}/new?type=spend`}>
+            <Icon name="spend" />
+            Spend
+          </a>
+        </div>
+      </section>
+
+      <section class="panel stack">
+        <div class="section-header">
+          <div>
+            <p class="eyebrow">History</p>
+            <h2>Transactions</h2>
+          </div>
+        </div>
+
+        {transactions.length > 0 ? (
+          <div class="transaction-list">
+            <div class="transaction-head" aria-hidden="true">
+              <span>Date</span>
+              <span>Entry</span>
+              <span>Amount</span>
+              <span>Balance</span>
+            </div>
+            {transactions.map((transaction) => (
+              <article class:list={["transaction-row", `transaction-row--${transaction.type}`]}>
+                <time datetime={transaction.date}>{formatDate(transaction.date)}</time>
+                <div>
+                  <strong>{transaction.description}</strong>
+                  <small>{transaction.type === "interest" ? "Interest" : transaction.type === "save" ? "Save" : "Spend"}</small>
+                </div>
+                <span class="money transaction-row__amount">
+                  {formatMoney(transaction.amount_cents, { signed: true, type: transaction.type })}
+                </span>
+                <span class="money">{formatMoney(transaction.balance_after_cents)}</span>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div class="empty-state empty-state--compact">
+            <Icon name="receipt" />
+            <h3>No transactions yet</h3>
+            <p>Save and spend entries will appear here with the running balance after each transaction.</p>
+          </div>
+        )}
+      </section>
+    </main>
+  ) : (
+    <main class="panel empty-state">
+      <Icon name="kid" />
+      <h1>Kid not found</h1>
+      <p>This account does not exist or has been archived.</p>
+      <a class="button" href="/">Back to accounts</a>
+    </main>
+  )}
+</AppLayout>

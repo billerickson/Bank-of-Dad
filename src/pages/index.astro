@@ -1,15 +1,46 @@
 ---
 import AppLayout from "@/layouts/AppLayout.astro";
+import Icon from "@/components/Icon.astro";
+import { formatDate, formatMoney } from "@/lib/format";
+import { listKidSummaries } from "@/lib/db";
 
 export const prerender = false;
+
+const kids = await listKidSummaries();
 ---
 
 <AppLayout title="Bank of Dad" current="home">
-  <section class="panel stack">
-    <p class="eyebrow">Vault Ledger</p>
-    <div class="page-heading">
-      <h1>Bank of Dad</h1>
-      <p>The branded shell is ready for app flows.</p>
-    </div>
-  </section>
+  <main class="stack">
+    <section class="page-heading">
+      <p class="eyebrow">Accounts</p>
+      <h1>Family ledger</h1>
+      <p>Current balances for each configured kid.</p>
+    </section>
+
+    {kids.length > 0 ? (
+      <section class="account-list" aria-label="Kid accounts">
+        {kids.map((kid) => (
+          <a class="account-row" href={`/kids/${kid.id}`}>
+            <span class="avatar" aria-hidden="true">{kid.name.slice(0, 1).toUpperCase()}</span>
+            <span class="account-row__body">
+              <strong>{kid.name}</strong>
+              <small>
+                {kid.last_description
+                  ? `Last transaction: ${kid.last_description}${kid.last_transaction_date ? `, ${formatDate(kid.last_transaction_date)}` : ""}`
+                  : "No transactions yet"}
+              </small>
+            </span>
+            <span class="account-row__amount money">{formatMoney(kid.balance_cents)}</span>
+            <Icon name="back" />
+          </a>
+        ))}
+      </section>
+    ) : (
+      <section class="panel empty-state">
+        <Icon name="kid" />
+        <h2>No kids yet</h2>
+        <p>Kids are added during first-run onboarding. If you expected accounts here, check the D1 data for this deployment.</p>
+      </section>
+    )}
+  </main>
 </AppLayout>

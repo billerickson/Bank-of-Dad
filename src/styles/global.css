@@ -400,6 +400,212 @@ textarea {
   border: 0;
 }
 
+.account-list {
+  display: grid;
+  gap: 12px;
+}
+
+.account-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  gap: 12px;
+  align-items: center;
+  min-height: 92px;
+  padding: 14px;
+  color: var(--color-ink);
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-card);
+  text-decoration: none;
+}
+
+.account-row:hover {
+  border-color: rgba(14, 23, 38, 0.32);
+  box-shadow: var(--shadow-soft);
+}
+
+.account-row .icon {
+  transform: rotate(180deg);
+  color: var(--color-muted);
+}
+
+.avatar {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  color: #ffffff;
+  background: var(--color-brand);
+  border-radius: 999px;
+  font-weight: 800;
+}
+
+.account-row__body {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.account-row__body strong,
+.account-row__body small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-row__body small {
+  color: var(--color-muted);
+  font-size: 0.78rem;
+}
+
+.account-row__amount {
+  font-size: 1.16rem;
+  font-weight: 800;
+}
+
+.back-link {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  justify-self: start;
+  color: var(--color-muted);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.balance-panel {
+  display: grid;
+  gap: 12px;
+  padding: 22px;
+  color: #ffffff;
+  background: var(--color-ink);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft);
+}
+
+.balance-panel .eyebrow,
+.balance-panel h1,
+.balance-panel p {
+  color: inherit;
+}
+
+.balance-panel h1 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.balance {
+  margin: 0;
+  font-size: clamp(2.8rem, 15vw, 4.4rem);
+  font-weight: 800;
+  line-height: 1;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.section-header h2,
+.empty-state h2,
+.empty-state h3 {
+  margin: 0;
+}
+
+.transaction-list {
+  display: grid;
+}
+
+.transaction-head,
+.transaction-row {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr) minmax(74px, auto) minmax(82px, auto);
+  gap: 10px;
+  align-items: center;
+}
+
+.transaction-head {
+  padding: 0 0 8px;
+  color: var(--color-muted);
+  border-bottom: 1px solid var(--color-line);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.transaction-row {
+  min-height: 66px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--color-line);
+  font-size: 0.84rem;
+}
+
+.transaction-row time {
+  color: var(--color-muted);
+  font-weight: 700;
+}
+
+.transaction-row strong {
+  display: block;
+}
+
+.transaction-row small {
+  color: var(--color-muted);
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.transaction-row .money {
+  text-align: right;
+}
+
+.transaction-row__amount {
+  font-weight: 800;
+}
+
+.transaction-row--save .transaction-row__amount,
+.transaction-row--interest .transaction-row__amount {
+  color: var(--color-save);
+}
+
+.transaction-row--spend .transaction-row__amount {
+  color: var(--color-spend);
+}
+
+.empty-state {
+  display: grid;
+  place-items: center;
+  gap: 10px;
+  padding: 32px 22px;
+  text-align: center;
+}
+
+.empty-state .icon {
+  width: 32px;
+  height: 32px;
+  color: var(--color-muted);
+}
+
+.empty-state p {
+  max-width: 34ch;
+  margin: 0;
+  color: var(--color-muted);
+}
+
+.empty-state--compact {
+  padding: 18px 12px;
+  border: 1px dashed var(--color-line);
+  border-radius: var(--radius-card);
+}
+
+.transaction-form-card {
+  margin-top: 4px;
+}
+
 @media (max-width: 390px) {
   .brand-mark__text strong {
     font-size: 0.9rem;
@@ -407,5 +613,29 @@ textarea {
 
   .app-nav a span {
     display: none;
+  }
+
+  .account-row {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .account-row__amount {
+    grid-column: 2 / 4;
+    justify-self: start;
+  }
+
+  .transaction-head {
+    display: none;
+  }
+
+  .transaction-row {
+    grid-template-columns: 52px minmax(0, 1fr) auto;
+  }
+
+  .transaction-row > .money:last-child {
+    grid-column: 2 / 4;
+    justify-self: end;
+    color: var(--color-muted);
+    font-size: 0.78rem;
   }
 }

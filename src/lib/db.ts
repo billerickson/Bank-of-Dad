@@ -115,3 +115,112 @@ export async function listKidSummaries(db = getDb()): Promise<KidSummary[]> {
 
   return result.results ?? [];
 }
+
+export async function getKidSummary(kidId: string, db = getDb()): Promise<KidSummary | null> {
+  return db
+    .prepare(
+      `SELECT
+        k.*,
+        COALESCE(
+          (
+            SELECT t.balance_after_cents
+            FROM transactions t
+            WHERE t.kid_id = k.id
+            ORDER BY t.date DESC, t.created_at DESC, t.id DESC
+            LIMIT 1
+          ),
+          0
+        ) AS balance_cents,
+        (
+          SELECT t.description
+          FROM transactions t
+          WHERE t.kid_id = k.id
+          ORDER BY t.date DESC, t.created_at DESC, t.id DESC
+          LIMIT 1
+        ) AS last_description,
+        (
+          SELECT t.date
+          FROM transactions t
+          WHERE t.kid_id = k.id
+          ORDER BY t.date DESC, t.created_at DESC, t.id DESC
+          LIMIT 1
+        ) AS last_transaction_date
+      FROM kids k
+      WHERE k.id = ? AND k.archived_at IS NULL`
+    )
+    .bind(kidId)
+    .first<KidSummary>();
+}
+
+export async function listTransactions(kidId: string, db = getDb()): Promise<TransactionRow[]> {
+  const result = await db
+    .prepare(
+      `SELECT *
+      FROM transactions
+      WHERE kid_id = ?
+      ORDER BY date DESC, created_at DESC, id DESC`
+    )
+    .bind(kidId)
+    .all<TransactionRow>();
+
+  return result.results ?? [];
+}
+
+async function listTransactionsAscending(kidId: string, db = getDb()): Promise<TransactionRow[]> {
+  const result = await db
+    .prepare(
+      `SELECT *
+      FROM transactions
+      WHERE kid_id = ?
+      ORDER BY date ASC, created_at ASC, id ASC`
+    )
+    .bind(kidId)
+    .all<TransactionRow>();
+
+  return result.results ?? [];
+}
+
+export async function recalculateKidBalances(kidId: string, db = getDb()): Promise<void> {
+  const transactions = await listTransactionsAscending(kidId, db);
+  let balance = 0;
+  const statements: D1PreparedStatement[] = [];
+
+  for (const transaction of transactions) {
+    balance += transaction.type === "spend" ? -transaction.amount_cents : transaction.amount_cents;
+    statements.push(db.prepare("UPDATE transactions SET balance_after_cents = ? WHERE id = ?").bind(balance, transaction.id));
+  }
+
+  if (statements.length > 0) {
+    await db.batch(statements);
+  }
+}
+
+export async function addTransaction(
+  input: {
+    kidId: string;
+    type: Extract<TransactionType, "save" | "spend">;
+    date: string;
+    description: string;
+    amountCents: number;
+  },
+  db = getDb()
+): Promise<void> {
+  await db
+    .prepare(
+      `INSERT INTO transactions
+        (id, kid_id, type, date, description, amount_cents, balance_after_cents, interest_for_month, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, 0, NULL, ?)`
+    )
+    .bind(
+      crypto.randomUUID(),
+      input.kidId,
+      input.type,
+      input.date,
+      input.description,
+      input.amountCents,
+      nowIso()
+    )
+    .run();
+
+  await recalculateKidBalances(input.kidId, db);
+}
