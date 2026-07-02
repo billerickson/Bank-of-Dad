@@ -5,10 +5,7 @@ not move real money. Parents manually record money saved from chores,
 allowance, gifts, or other deposits, and money spent on purchases. The app is
 designed to work well as a small phone-first PWA shared by two parents.
 
-The current visual system is **Option B: Vault Ledger** from
-`docs/brand-guides/option-b-wallet-bank.md`: restrained banking colors,
-IBM Plex Sans for UI, IBM Plex Mono for money, and a clean ledger-style
-interface.
+![screenshot](https://p198.p4.n0.cdn.zight.com/items/KoubL2PB/0cebc218-3d8d-40bf-afe8-6fe896d5ac94.jpg?source=viewer&v=493b7e453a76dc45168cf7447e0b1da2)
 
 ## What It Does
 
