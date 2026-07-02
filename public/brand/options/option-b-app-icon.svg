@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Vault Ledger app icon concept</title>
+  <desc id="desc">A dark wallet and vault icon for Bank of Dad.</desc>
+  <rect width="512" height="512" rx="96" fill="#0E1726"/>
+  <rect x="120" y="150" width="250" height="188" rx="32" fill="#F7F5EF"/>
+  <rect x="158" y="196" width="236" height="152" rx="28" fill="#0B6B4F"/>
+  <circle cx="256" cy="272" r="62" fill="#F7F5EF" stroke="#0E1726" stroke-width="18"/>
+  <circle cx="256" cy="272" r="16" fill="#D8A31A"/>
+  <path d="M256 210v34M256 300v34M194 272h34M284 272h34" stroke="#0E1726" stroke-width="14" stroke-linecap="round"/>
+  <path d="M120 188h210" stroke="#0E1726" stroke-width="18" stroke-linecap="round"/>
+</svg>

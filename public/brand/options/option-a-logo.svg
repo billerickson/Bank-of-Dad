@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="240" viewBox="0 0 720 240" role="img" aria-labelledby="title desc">
+  <title id="title">Bank of Dad Coin Blocks logo concept</title>
+  <desc id="desc">A blocky piggy-bank mark with colorful coin tiles next to the Bank of Dad wordmark.</desc>
+  <rect width="720" height="240" rx="28" fill="#FFF7E8"/>
+  <g transform="translate(54 50)">
+    <rect x="26" y="48" width="158" height="92" rx="18" fill="#14C7C9" stroke="#182033" stroke-width="8"/>
+    <rect x="58" y="26" width="76" height="36" rx="12" fill="#FFD447" stroke="#182033" stroke-width="8"/>
+    <rect x="142" y="72" width="54" height="42" rx="12" fill="#FF4FA3" stroke="#182033" stroke-width="8"/>
+    <circle cx="58" cy="92" r="10" fill="#182033"/>
+    <rect x="60" y="132" width="34" height="28" rx="10" fill="#FF8A3D" stroke="#182033" stroke-width="8"/>
+    <rect x="126" y="132" width="34" height="28" rx="10" fill="#3D7CFF" stroke="#182033" stroke-width="8"/>
+    <circle cx="40" cy="38" r="18" fill="#FFD447" stroke="#182033" stroke-width="8"/>
+    <path d="M180 58c18 6 28 18 30 38" fill="none" stroke="#182033" stroke-width="8" stroke-linecap="round"/>
+  </g>
+  <g fill="#182033">
+    <text x="292" y="104" font-family="Fredoka, Nunito Sans, Arial Rounded MT Bold, system-ui, sans-serif" font-size="58" font-weight="700">Bank of Dad</text>
+    <text x="296" y="148" font-family="Nunito Sans, system-ui, sans-serif" font-size="24" font-weight="800" fill="#5F6678">coin blocks brand direction</text>
+  </g>
+  <rect x="294" y="166" width="50" height="22" rx="7" fill="#FF4FA3"/>
+  <rect x="354" y="166" width="50" height="22" rx="7" fill="#14C7C9"/>
+  <rect x="414" y="166" width="50" height="22" rx="7" fill="#FFD447"/>
+  <rect x="474" y="166" width="50" height="22" rx="7" fill="#3D7CFF"/>
+</svg>
