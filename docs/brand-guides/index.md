@@ -4,6 +4,10 @@ This directory contains three brand directions for the Bank of Dad Astro app. Th
 
 The shared source of truth is `docs/bank-of-dad-spec.md`. All mockups use Reagan and Ada only as sample data for documentation. The production app must collect kids during first-run onboarding and must not seed real family data.
 
+## Visual HTML/CSS Mockup
+
+Open [mockups.html](./mockups.html) to review the three directions as styled HTML/CSS screens. This is a static brand exploration artifact, not the Astro app implementation.
+
 ## Options
 
 | Option | Concept | Best fit | Tradeoffs |
