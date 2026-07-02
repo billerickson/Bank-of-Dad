@@ -1,32 +1,111 @@
 # Bank of Dad
 
-Bank of Dad is a private family chore and spending ledger built with Astro for Cloudflare Workers. It does not move real money. Parents use one shared password, add kids during first-run onboarding, and record save/spend transactions manually.
+Bank of Dad is a private family ledger for tracking kid balances. It does
+not move real money. Parents manually record money saved from chores,
+allowance, gifts, or other deposits, and money spent on purchases. The app is
+designed to work well as a small phone-first PWA shared by two parents.
 
-The selected brand direction is **Option B: Vault Ledger** from `docs/brand-guides/option-b-wallet-bank.md`.
+The current visual system is **Option B: Vault Ledger** from
+`docs/brand-guides/option-b-wallet-bank.md`: restrained banking colors,
+IBM Plex Sans for UI, IBM Plex Mono for money, and a clean ledger-style
+interface.
 
-## Tech Stack
+## What It Does
 
-- Astro with server rendering
-- `@astrojs/cloudflare` adapter
-- Cloudflare Workers deployment
-- Cloudflare D1 for shared persistent storage
-- Signed HttpOnly cookie for the parent session
-- Web Crypto PBKDF2 password hashing
+- Runs a first-run onboarding flow against an empty database.
+- Lets the parent create one shared password.
+- Lets the parent add one or more kids during onboarding.
+- Password-gates all private app screens after onboarding.
+- Lists configured kids and current balances on the home screen.
+- Shows each kid's account balance and transaction history.
+- Records Save transactions that increase balance.
+- Records Spend transactions that decrease balance.
+- Shows date, description, signed amount, and running balance for each row.
+- Applies catch-up monthly interest from Settings.
+- Stores all data in Cloudflare D1 so multiple devices share one ledger.
+- Includes noindex protections and PWA metadata.
 
-## Storage Decision
+This is a family utility, not bank-grade authentication or a financial
+product.
 
-This app uses **Cloudflare D1** instead of localStorage or KV.
+## How It Works
 
-D1 is the simplest good fit because Bank of Dad is an auditable ledger with relational data:
+### Storage
+
+Bank of Dad uses **Cloudflare D1** for persistent shared storage. D1 is a good
+fit because the app is an auditable ledger:
 
 - kids have many transactions
 - transactions are the source of truth
 - balances can be recalculated from transaction history
-- monthly interest needs duplicate protection per `(kid, month)`
+- monthly interest needs duplicate protection per kid/month
 
-The D1 migration creates a partial unique index for interest transactions so clicking Apply Monthly Interest repeatedly does not duplicate the same kid/month.
+The schema is in `migrations/0001_schema.sql` and creates three tables:
 
-## Local Setup
+- `app_settings` - initialization state, password hash, and interest rate
+- `kids` - kid records created during onboarding
+- `transactions` - save, spend, and interest ledger rows
+
+Interest rows use a unique partial index on `(kid_id, interest_for_month)` so
+the same monthly interest cannot be applied twice for the same kid.
+
+### Authentication
+
+The first-run onboarding flow stores a hash of the shared parent password.
+The app validates that password server-side and stores an HttpOnly signed
+session cookie. The plain password is never stored in the repo or database.
+
+### Balances
+
+Transactions are the audit trail. Save and interest transactions add to the
+balance; spend transactions subtract from it. Transaction rows store the
+running `balance_after_cents` value so history is easy to display and audit.
+
+### Monthly Interest
+
+The Settings page includes **Apply Monthly Interest**. It applies 1% monthly
+interest for each completed month where a kid had a positive ending balance.
+It skips the current month, backdates each interest transaction to the first
+day of the following month, and is idempotent.
+
+Example: June interest is calculated from the final June 30 balance and
+recorded on July 1.
+
+### Privacy
+
+The app is meant to be private by URL and password gate. It also includes:
+
+- `<meta name="robots" content="noindex, nofollow">`
+- `X-Robots-Tag: noindex, nofollow`
+- `Cache-Control: no-store` on app HTML routes
+- no real family data committed to source
+
+## Tech Stack
+
+- Astro with server rendering
+- `@astrojs/cloudflare`
+- Cloudflare Workers
+- Cloudflare D1
+- Wrangler
+- Web Crypto PBKDF2 password hashing
+- Self-hosted IBM Plex fonts via `@fontsource`
+
+## Project Structure
+
+```text
+src/
+  components/         Brand mark and inline SVG icons
+  layouts/            App layout, PWA tags, cache-busted stylesheet link
+  lib/                Auth, D1 helpers, formatting, interest calculation
+  middleware.ts       Noindex, cache, origin checks, and route gating
+  pages/              Onboarding, login, dashboard, kids, settings
+  styles/             Vault Ledger CSS system
+migrations/           D1 schema
+public/               PWA manifest, icons, static headers, brand assets
+docs/                 Product spec and brand guide explorations
+```
+
+## Local Installation
 
 Install dependencies:
 
@@ -40,7 +119,11 @@ Create local secrets:
 cp .dev.vars.example .dev.vars
 ```
 
-Edit `.dev.vars` and set a long random `SESSION_SECRET`. Do not commit `.dev.vars`.
+Edit `.dev.vars` and set a long random value:
+
+```sh
+SESSION_SECRET="replace-with-a-long-random-local-secret"
+```
 
 Apply the D1 schema to the local Miniflare database:
 
@@ -54,60 +137,53 @@ Start the local app:
 npm run dev
 ```
 
-Open the local URL shown by Astro. With an empty local D1 database, the app redirects to first-run onboarding.
+Open the local URL printed by Astro. With an empty local D1 database, the app
+redirects to onboarding.
 
-## First-Run Onboarding
+## First-Run Setup
 
-On first load against an empty database, the app asks for:
+On first load, onboarding asks for:
 
-- shared parent password
+- a shared parent password
 - one or more kid names
 
-The parent password is hashed before it is stored. Kid names are entered by the parent and are not hardcoded or seeded in production code.
+Kids start at `$0.00`. To add a starting balance later, open the kid account
+and create a Save transaction with a description like `Starting balance`.
+This keeps the ledger auditable.
 
-For Bill's deployment, use onboarding to add Reagan and Ada.
-
-## Starting Balances
-
-Kids start at `$0.00` after onboarding.
-
-To add a starting balance later, open the kid account and create a **Save** transaction with a description like `Starting balance`. This keeps the ledger auditable instead of storing invisible balance state.
+The production app does not hardcode or auto-seed Reagan, Ada, or any other
+kid. Bill's deployed instance should add Reagan and Ada through onboarding.
 
 ## Development Commands
 
 ```sh
-npm run dev
-npm run build
-npm run preview
-npm run db:migrate:local
+npm run dev              # generate Wrangler types and start Astro dev
+npm run build            # Wrangler types, Astro check, Astro build
+npm run preview          # Wrangler types and Astro preview
+npm run deploy           # build and deploy with Wrangler
+npm run db:migrate:local # apply D1 schema locally
+npm run db:migrate:remote # apply D1 schema to remote Cloudflare D1
 ```
 
-`npm run build` runs:
+## Cloudflare Deployment
 
-```sh
-wrangler types && astro check && astro build
-```
+The checked-in Wrangler config targets Bill's deployment:
 
-## Cloudflare Setup
-
-The project is prepared for Cloudflare Workers. Current Astro Cloudflare docs recommend Workers for new full-stack Astro apps.
-
-This repo is configured for Bill's deployment with:
-
-- Worker name: `bank-of-dad`
-- D1 database: `bank-of-dad`
+- Worker: `bank-of-dad`
+- Custom domain: `bod.billerickson.net`
 - D1 binding: `DB`
-- Custom domain route: `bod.billerickson.net`
+- D1 database name: `bank-of-dad`
 
-For another family's fork, create a new D1 database and replace the `database_id` in `wrangler.jsonc`.
+For a new installation, create a fresh D1 database and update
+`wrangler.jsonc` before deploying.
 
-1. Log in:
+1. Sign in to Cloudflare:
 
 ```sh
 npx wrangler login
 ```
 
-2. Create the production D1 database if this is a new deployment:
+2. Create a D1 database:
 
 ```sh
 npx wrangler d1 create bank-of-dad
@@ -121,7 +197,7 @@ npx wrangler d1 create bank-of-dad
 npx wrangler secret put SESSION_SECRET
 ```
 
-5. Apply the schema to production D1:
+5. Apply the remote schema:
 
 ```sh
 npm run db:migrate:remote
@@ -133,88 +209,47 @@ npm run db:migrate:remote
 npm run deploy
 ```
 
-7. Confirm the custom domain `bod.billerickson.net` is active.
+7. Confirm the custom domain is active in Cloudflare.
 
-The repo includes this Wrangler route:
-
-```json
-"routes": [
-  {
-    "pattern": "bod.billerickson.net",
-    "custom_domain": true
-  }
-]
-```
-
-If Cloudflare cannot attach the custom domain during deploy, add it from the dashboard:
-
-- Open Cloudflare Dashboard
-- Go to Workers & Pages
-- Select the `bank-of-dad` Worker
-- Add a custom domain or route for `bod.billerickson.net`
-- Confirm DNS points through Cloudflare
+If the target hostname is not `bod.billerickson.net`, update the
+`routes[].pattern` value in `wrangler.jsonc` before deploying.
 
 ## Environment Variables
 
-`SESSION_SECRET` is required.
-
-Local development:
+Required:
 
 ```sh
-.dev.vars
+SESSION_SECRET
 ```
 
-Production:
+Local values live in `.dev.vars`, which is ignored by git. Production values
+must be set through Wrangler or the Cloudflare dashboard. Do not commit real
+secrets, parent passwords, local D1 state, or production data.
 
-```sh
-npx wrangler secret put SESSION_SECRET
-```
-
-The parent password is not an environment variable. It is created during first-run onboarding and stored only as a server-side hash in D1.
-
-## Monthly Interest
-
-The Settings page contains **Apply Monthly Interest**.
-
-Behavior:
-
-- default rate is 1% monthly
-- applies only to completed months
-- skips the current in-progress month
-- skips months where the kid's ending balance was `$0.00` or negative
-- backdates interest to the first day of the following month
-- records interest as explicit transactions
-- guards against duplicate kid/month interest rows
-
-If several months were missed, one click catches up all eligible months.
-
-## Privacy and Indexing
-
-This app is private by convention and password gate, not bank-grade auth.
-
-Noindex protections are included:
-
-- every app page includes `<meta name="robots" content="noindex, nofollow">`
-- middleware adds `X-Robots-Tag: noindex, nofollow`
-- `public/_headers` adds noindex headers for static assets where Cloudflare applies them
-
-Do not commit real secrets, real passwords, local D1 state, or `.dev.vars`.
+`.env.example` and `.dev.vars.example` contain placeholder values only.
 
 ## PWA Notes
 
 The app includes:
 
 - `public/manifest.webmanifest`
-- Vault Ledger SVG icon at `public/icons/icon.svg`
+- `public/favicon.svg`
+- `public/icons/icon.svg`
 - mobile viewport and safe-area handling
-- theme/background colors from Option B
+- theme and background colors from Vault Ledger
 
-Offline transaction entry is intentionally not supported. Transactions require the shared D1 source of truth so both parent phones see the same balances.
+Offline transaction entry is intentionally not supported. The ledger should
+use D1 as the shared source of truth so both parent phones see the same data.
 
-## Deployment Sources
+## Brand and Design Docs
 
-The Cloudflare setup follows the current Astro and Cloudflare docs for:
+The original product spec is in `docs/bank-of-dad-spec.md`.
 
-- Astro Cloudflare adapter and `cloudflare:workers` bindings
-- Cloudflare Workers deployment with Wrangler
-- Cloudflare D1 bindings and local D1 data
+Brand exploration files live in `docs/brand-guides/`:
+
+- Option A: Buddy Blocks inspired
+- Option B: Vault Ledger
+- Option C: Codex choice
+- HTML/CSS mockups for comparing the options
+
+Option B is the selected direction for the built app.
