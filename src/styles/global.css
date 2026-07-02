@@ -606,6 +606,41 @@ textarea {
   margin-top: 4px;
 }
 
+.rate-pill {
+  min-width: 52px;
+  min-height: 40px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0 12px;
+  color: var(--color-ink);
+  background: rgba(216, 163, 26, 0.18);
+  border: 1px solid rgba(216, 163, 26, 0.4);
+  border-radius: 999px;
+  font-family: var(--font-number);
+  font-weight: 800;
+}
+
+.interest-summary {
+  display: grid;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-line);
+}
+
+.interest-summary div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 40px;
+}
+
+.interest-summary span {
+  color: var(--color-muted);
+  font-size: 0.9rem;
+  text-align: right;
+}
+
 @media (max-width: 390px) {
   .brand-mark__text strong {
     font-size: 0.9rem;

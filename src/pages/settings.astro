@@ -1,0 +1,83 @@
+---
+import Icon from "@/components/Icon.astro";
+import AppLayout from "@/layouts/AppLayout.astro";
+import { getSettings } from "@/lib/db";
+import { formatMoney } from "@/lib/format";
+import { applyMonthlyInterest, type InterestResult } from "@/lib/interest";
+
+export const prerender = false;
+
+const settings = await getSettings();
+let result: InterestResult | null = null;
+let message = "";
+
+if (Astro.request.method === "POST") {
+  const form = await Astro.request.formData();
+  if (form.get("action") === "apply-interest") {
+    result = await applyMonthlyInterest();
+    message =
+      result.appliedCount > 0
+        ? `Applied ${result.appliedCount} interest ${result.appliedCount === 1 ? "transaction" : "transactions"} totaling ${formatMoney(result.totalCents)}.`
+        : "You're all caught up. No monthly interest was due.";
+  }
+}
+---
+
+<AppLayout title="Settings" current="settings">
+  <main class="stack">
+    <section class="page-heading">
+      <p class="eyebrow">Settings</p>
+      <h1>Parent tools</h1>
+      <p>Secondary ledger actions live here so the main account flow stays focused.</p>
+    </section>
+
+    {message && <p class:list={["alert", result?.appliedCount ? "alert--success" : ""]}>{message}</p>}
+
+    <section class="panel stack">
+      <div class="section-header">
+        <div>
+          <p class="eyebrow">Monthly interest</p>
+          <h2>Apply catch-up interest</h2>
+        </div>
+        <span class="rate-pill">{Math.round((settings?.monthly_interest_rate ?? 0.01) * 100)}%</span>
+      </div>
+      <p class="muted">
+        Applies interest for each completed month with a positive ending balance, backdated to the first day of the following month.
+      </p>
+      <form method="post">
+        <input type="hidden" name="action" value="apply-interest">
+        <button type="submit">
+          <Icon name="percent" />
+          Apply Monthly Interest
+        </button>
+      </form>
+
+      {result && result.summaries.length > 0 && (
+        <div class="interest-summary" aria-label="Interest application summary">
+          {result.summaries.map((summary) => (
+            <div>
+              <strong>{summary.kidName}</strong>
+              <span>
+                {summary.count} {summary.count === 1 ? "transaction" : "transactions"} · {formatMoney(summary.totalCents)}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+
+    <section class="panel stack">
+      <div>
+        <p class="eyebrow">Session</p>
+        <h2>Shared parent access</h2>
+      </div>
+      <p class="muted">This app uses one shared parent password for the family. It is a private utility, not bank-grade authentication.</p>
+      <form method="post" action="/logout">
+        <button class="secondary" type="submit">
+          <Icon name="logout" />
+          Log out
+        </button>
+      </form>
+    </section>
+  </main>
+</AppLayout>
