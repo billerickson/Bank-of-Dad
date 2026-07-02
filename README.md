@@ -1,252 +1,148 @@
 # Bank of Dad
 
-Bank of Dad is a private family ledger for tracking kid balances. It does
-not move real money. Parents manually record money saved from chores,
-allowance, gifts, or other deposits, and money spent on purchases. The app is
-designed to work well as a small phone-first PWA shared by two parents.
+Bank of Dad is a private family money ledger for kids. It gives parents a
+simple place to track allowance, chore money, gifts, spending, and monthly
+interest without pretending to be a real bank.
 
-![screenshot](https://p198.p4.n0.cdn.zight.com/items/KoubL2PB/0cebc218-3d8d-40bf-afe8-6fe896d5ac94.jpg?source=viewer&v=493b7e453a76dc45168cf7447e0b1da2)
+It is built for the small moments that usually happen in passing:
 
-## What It Does
+- "Can I buy this?"
+- "How much do I have?"
+- "Add five dollars for mowing."
+- "Did we ever apply interest this month?"
 
-- Runs a first-run onboarding flow against an empty database.
-- Lets the parent create one shared password.
-- Lets the parent add one or more kids during onboarding.
-- Password-gates all private app screens after onboarding.
-- Lists configured kids and current balances on the home screen.
-- Shows each kid's account balance and transaction history.
-- Records Save transactions that increase balance.
-- Records Spend transactions that decrease balance.
-- Shows date, description, signed amount, and running balance for each row.
-- Applies catch-up monthly interest from Settings.
-- Stores all data in Cloudflare D1 so multiple devices share one ledger.
-- Includes noindex protections and PWA metadata.
+Bank of Dad turns those moments into a clear ledger both parents can trust.
 
-This is a family utility, not bank-grade authentication or a financial
-product.
+![Bank of Dad app screenshot](https://p198.p4.n0.cdn.zight.com/items/KoubL2PB/0cebc218-3d8d-40bf-afe8-6fe896d5ac94.jpg?source=viewer&v=493b7e453a76dc45168cf7447e0b1da2)
+
+## A Tiny Family Bank
+
+The app is intentionally small. Parents create kid accounts, add Save and
+Spend entries, and see each child's current balance. Every change is recorded
+as a transaction, so the answer is never "I think you have about..."
+
+It is not connected to a real bank account. It does not move money. It is the
+family version of a ledger book, made fast enough to use from a phone while
+standing in a store aisle.
 
 ## How It Works
 
-### Storage
+### 1. Set up your family bank
 
-Bank of Dad uses **Cloudflare D1** for persistent shared storage. D1 is a good
-fit because the app is an auditable ledger:
+The first time the app opens, a parent creates the shared password and adds
+the kids. There are no built-in sample children and no default password.
 
-- kids have many transactions
-- transactions are the source of truth
-- balances can be recalculated from transaction history
-- monthly interest needs duplicate protection per kid/month
+Each kid starts at `$0.00`. If they already have money saved, add a Save
+transaction called `Starting balance` so the beginning is visible in the
+ledger.
 
-The schema is in `migrations/0001_schema.sql` and creates three tables:
+### 2. Open the dashboard
 
-- `app_settings` - initialization state, password hash, and interest rate
-- `kids` - kid records created during onboarding
-- `transactions` - save, spend, and interest ledger rows
+The home screen shows each kid and their current balance. Tap a kid to open
+their account.
 
-Interest rows use a unique partial index on `(kid_id, interest_for_month)` so
-the same monthly interest cannot be applied twice for the same kid.
+### 3. Record saves and spends
 
-### Authentication
+Use **Save** when money comes in: allowance, chores, birthday cash, gifts,
+refunds, or anything else the family wants to track.
 
-The first-run onboarding flow stores a hash of the shared parent password.
-The app validates that password server-side and stores an HttpOnly signed
-session cookie. The plain password is never stored in the repo or database.
+Use **Spend** when money goes out: toys, games, books, treats, or purchases
+where a parent paid first and the kid is using their balance.
 
-### Balances
+Each row shows the date, description, signed amount, and running balance.
 
-Transactions are the audit trail. Save and interest transactions add to the
-balance; spend transactions subtract from it. Transaction rows store the
-running `balance_after_cents` value so history is easy to display and audit.
+### 4. Apply monthly interest
 
-### Monthly Interest
+Bank of Dad can apply 1% monthly interest from the Settings screen. If you
+forget for a few months, one tap catches up the completed months that still
+need interest.
 
-The Settings page includes **Apply Monthly Interest**. It applies 1% monthly
-interest for each completed month where a kid had a positive ending balance.
-It skips the current month, backdates each interest transaction to the first
-day of the following month, and is idempotent.
+Interest is written into the ledger as its own transaction and protected
+against duplicates, so tapping the button twice will not pay the same month
+twice.
 
-Example: June interest is calculated from the final June 30 balance and
-recorded on July 1.
+## What Parents Get
 
-### Privacy
+- A shared source of truth across parent phones
+- Fast balance checks before a purchase
+- A visible history of where the money came from and where it went
+- Simple Save and Spend flows that do not require a spreadsheet
+- Optional monthly interest that teaches the idea of money growing over time
+- A private, password-gated app that can be saved to a phone home screen
 
-The app is meant to be private by URL and password gate. It also includes:
+## What Kids Get
 
-- `<meta name="robots" content="noindex, nofollow">`
-- `X-Robots-Tag: noindex, nofollow`
-- `Cache-Control: no-store` on app HTML routes
-- no real family data committed to source
+- A clear answer to "How much do I have?"
+- A running history they can understand
+- A way to see saving, spending, and interest as real choices
+- A little more ownership over money without needing real bank access
 
-## Tech Stack
+## Built for Repeat Use
 
-- Astro with server rendering
-- `@astrojs/cloudflare`
-- Cloudflare Workers
-- Cloudflare D1
-- Wrangler
-- Web Crypto PBKDF2 password hashing
-- Self-hosted IBM Plex fonts via `@fontsource`
+Bank of Dad is mobile-first. The interface is meant to be opened quickly,
+tapped with one hand, and closed again. Balances are large, actions are clear,
+and the ledger stays calm.
 
-## Project Structure
+## Private by Default
 
-```text
-src/
-  components/         Brand mark and inline SVG icons
-  layouts/            App layout, PWA tags, cache-busted stylesheet link
-  lib/                Auth, D1 helpers, formatting, interest calculation
-  middleware.ts       Noindex, cache, origin checks, and route gating
-  pages/              Onboarding, login, dashboard, kids, settings
-  styles/             Vault Ledger CSS system
-migrations/           D1 schema
-public/               PWA manifest, icons, static headers, brand assets
-docs/                 Product spec and brand guide explorations
-```
+Bank of Dad is designed for one family.
 
-## Local Installation
+- The app is password-gated after setup.
+- The shared parent password is stored as a hash, not plain text.
+- Pages are marked noindex so search engines should not list them.
+- Family data is created during setup, not committed to the codebase.
 
-Install dependencies:
+This is still a simple family utility, not bank-grade security. Use it for
+tracking family balances, not for storing sensitive financial information.
+
+## Get Your Own Copy
+
+Bank of Dad is self-hosted. You can run your own copy on a Cloudflare account
+and your own domain.
+
+Point Codex, Claude, Hermes, or another AI agent at
+[`AGENTS.md`](./AGENTS.md), and it can follow the installation guide for you.
+The agent guide includes the Cloudflare setup, database setup, deployment
+steps, and verification checklist.
+
+For a quick local preview:
 
 ```sh
 npm install
-```
-
-Create local secrets:
-
-```sh
+cp wrangler.example.jsonc wrangler.jsonc
 cp .dev.vars.example .dev.vars
-```
-
-Edit `.dev.vars` and set a long random value:
-
-```sh
-SESSION_SECRET="replace-with-a-long-random-local-secret"
-```
-
-Apply the D1 schema to the local Miniflare database:
-
-```sh
 npm run db:migrate:local
-```
-
-Start the local app:
-
-```sh
 npm run dev
 ```
 
-Open the local URL printed by Astro. With an empty local D1 database, the app
-redirects to onboarding.
+Before deploying a real copy, set a private `SESSION_SECRET`, create a
+Cloudflare D1 database, and follow the full instructions in
+[`AGENTS.md`](./AGENTS.md).
 
-## First-Run Setup
+## Project Status
 
-On first load, onboarding asks for:
+The app currently includes:
 
-- a shared parent password
-- one or more kid names
+- first-run setup
+- shared parent login
+- kid dashboard
+- kid account screens
+- Save and Spend transactions
+- transaction history with running balances
+- monthly interest catch-up
+- Cloudflare D1 storage
+- PWA manifest and app icon
+- noindex protections
 
-Kids start at `$0.00`. To add a starting balance later, open the kid account
-and create a Save transaction with a description like `Starting balance`.
-This keeps the ledger auditable.
+Future improvements could include editing transactions, archiving kids,
+exporting the ledger, and optional parent notes.
 
-The production app does not hardcode or auto-seed Reagan, Ada, or any other
-kid. Bill's deployed instance should add Reagan and Ada through onboarding.
+## Brand and Planning Docs
 
-## Development Commands
+The product spec and brand exploration are included for context:
 
-```sh
-npm run dev              # generate Wrangler types and start Astro dev
-npm run build            # Wrangler types, Astro check, Astro build
-npm run preview          # Wrangler types and Astro preview
-npm run deploy           # build and deploy with Wrangler
-npm run db:migrate:local # apply D1 schema locally
-npm run db:migrate:remote # apply D1 schema to remote Cloudflare D1
-```
+- [`docs/bank-of-dad-spec.md`](./docs/bank-of-dad-spec.md)
+- [`docs/brand-guides/option-b-wallet-bank.md`](./docs/brand-guides/option-b-wallet-bank.md)
+- [`docs/brand-guides/mockups.html`](./docs/brand-guides/mockups.html)
 
-## Cloudflare Deployment
-
-The checked-in Wrangler config targets Bill's deployment:
-
-- Worker: `bank-of-dad`
-- Custom domain: `bod.billerickson.net`
-- D1 binding: `DB`
-- D1 database name: `bank-of-dad`
-
-For a new installation, create a fresh D1 database and update
-`wrangler.jsonc` before deploying.
-
-1. Sign in to Cloudflare:
-
-```sh
-npx wrangler login
-```
-
-2. Create a D1 database:
-
-```sh
-npx wrangler d1 create bank-of-dad
-```
-
-3. Copy the returned `database_id` into `wrangler.jsonc`.
-
-4. Set the production session secret:
-
-```sh
-npx wrangler secret put SESSION_SECRET
-```
-
-5. Apply the remote schema:
-
-```sh
-npm run db:migrate:remote
-```
-
-6. Deploy:
-
-```sh
-npm run deploy
-```
-
-7. Confirm the custom domain is active in Cloudflare.
-
-If the target hostname is not `bod.billerickson.net`, update the
-`routes[].pattern` value in `wrangler.jsonc` before deploying.
-
-## Environment Variables
-
-Required:
-
-```sh
-SESSION_SECRET
-```
-
-Local values live in `.dev.vars`, which is ignored by git. Production values
-must be set through Wrangler or the Cloudflare dashboard. Do not commit real
-secrets, parent passwords, local D1 state, or production data.
-
-`.env.example` and `.dev.vars.example` contain placeholder values only.
-
-## PWA Notes
-
-The app includes:
-
-- `public/manifest.webmanifest`
-- `public/favicon.svg`
-- `public/icons/icon.svg`
-- mobile viewport and safe-area handling
-- theme and background colors from Vault Ledger
-
-Offline transaction entry is intentionally not supported. The ledger should
-use D1 as the shared source of truth so both parent phones see the same data.
-
-## Brand and Design Docs
-
-The original product spec is in `docs/bank-of-dad-spec.md`.
-
-Brand exploration files live in `docs/brand-guides/`:
-
-- Option A: Buddy Blocks inspired
-- Option B: Vault Ledger
-- Option C: Codex choice
-- HTML/CSS mockups for comparing the options
-
-Option B is the selected direction for the built app.
+Option B, **Vault Ledger**, is the selected direction for the built app.

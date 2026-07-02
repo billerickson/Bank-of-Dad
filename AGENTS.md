@@ -23,9 +23,10 @@ SaaS assumptions.
 ## Quick Local Install
 
 ```sh
-git clone <repo-url>
+git clone git@github.com:billerickson/Bank-of-Dad.git
 cd Bank-of-Dad
 npm install
+cp wrangler.example.jsonc wrangler.jsonc
 cp .dev.vars.example .dev.vars
 ```
 
@@ -64,11 +65,14 @@ Use a fresh local database when possible and verify:
 - noindex meta/header protections are present
 - PWA manifest exists at `/manifest.webmanifest`
 
-## Installing to a New Cloudflare Account
+## Installing to a Cloudflare Account
 
-The checked-in `wrangler.jsonc` is configured for Bill's current deployment at
-`bod.billerickson.net`. For another family or another domain, update it before
-publishing.
+`wrangler.jsonc` is intentionally ignored by git because it contains
+deployment-specific hostnames and database IDs. Start from the public template:
+
+```sh
+cp wrangler.example.jsonc wrangler.jsonc
+```
 
 1. Sign in to the Cloudflare account that owns the target domain:
 
@@ -90,7 +94,7 @@ npx wrangler login
 {
   "routes": [
     {
-      "pattern": "bod.yoursite.com",
+      "pattern": "bank-of-dad.yoursite.com",
       "custom_domain": true
     }
   ]
@@ -144,12 +148,13 @@ npm run deploy
 9. Open the deployed domain. A fresh remote D1 database should show first-run
 onboarding. Create the shared parent password and add the family's kids.
 
-## Installing Bill's Existing Deployment
+## Updating an Existing Deployment
 
-Bill's current target is:
+For an existing private deployment, keep the real deployment settings in your
+local ignored `wrangler.jsonc`:
 
 - Worker: `bank-of-dad`
-- Domain: `bod.billerickson.net`
+- Domain: your private Cloudflare custom domain
 - D1 database name: `bank-of-dad`
 - D1 binding: `DB`
 
@@ -166,7 +171,7 @@ If Cloudflare credentials are present and the request is to deploy:
 npm run deploy
 ```
 
-Do not run destructive D1 commands on Bill's remote database unless explicitly
+Do not run destructive D1 commands on a remote database unless explicitly
 requested. To inspect counts safely:
 
 ```sh
@@ -186,11 +191,12 @@ After deploying, verify the live site:
 - D1 persists data across refreshes and separate browsers
 
 If normal DNS lookup fails from the local machine, resolve a Cloudflare IP and
-test with `curl --resolve`:
+test with `curl --resolve`, replacing `<your-hostname>` with the deployed
+custom domain:
 
 ```sh
-IP=$(dig +short bod.billerickson.net | head -n 1)
-curl -sSI --resolve "bod.billerickson.net:443:$IP" https://bod.billerickson.net/login
+IP=$(dig +short <your-hostname> | head -n 1)
+curl -sSI --resolve "<your-hostname>:443:$IP" https://<your-hostname>/login
 ```
 
 ## Data Model Notes

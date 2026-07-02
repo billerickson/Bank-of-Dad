@@ -2,7 +2,7 @@
 
 ## Project Summary
 
-Build a simple private Astro web app called **Bank of Dad** at `bod.billerickson.net`.
+Build a simple private Astro web app called **Bank of Dad** at a private family-owned domain.
 
 The app is a family-only chore/spending ledger. It does not move real money. Parents manually add transactions when kids “save” money from chores or “spend” money on store purchases. The app should feel polished enough to install as a PWA / home-screen app on phones, but remain simple, durable, and easy to maintain.
 
@@ -13,7 +13,7 @@ This repo should be safe to make public and reusable by other families. Do **not
 - Framework: **Astro**
 - Hosting: **Cloudflare**, matching my recent project workflow
 - Repo: **GitHub**
-- Domain: `bod.billerickson.net`
+- Domain: private family-owned Cloudflare custom domain
 - Indexing: app must be **noindex**
 - Auth: simple password gate before app access
 - First-run onboarding: parent creates the password and adds kids
@@ -527,7 +527,7 @@ Use this after selecting one brand guide. Replace `[SELECTED_OPTION]` with the c
 ```md
 /goal Build the Bank of Dad Astro app using `[SELECTED_OPTION]` from `docs/brand-guides/` as the selected visual direction and `docs/bank-of-dad-spec.md` as the product spec.
 
-Build the full app, commit changes along the way, and prepare it for Cloudflare deployment at `bod.billerickson.net`.
+Build the full app, commit changes along the way, and prepare it for Cloudflare deployment at the selected private family-owned domain.
 
 Core requirements:
 - Astro app running on Cloudflare.

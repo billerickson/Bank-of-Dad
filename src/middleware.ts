@@ -5,7 +5,6 @@ import { isValidSession } from "@/lib/auth";
 const PUBLIC_PREFIXES = ["/_astro/", "/icons/", "/brand/"];
 const PUBLIC_PATHS = new Set(["/favicon.svg", "/manifest.webmanifest"]);
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
-const TRUSTED_HOSTS = new Set(["bod.billerickson.net", "127.0.0.1:4321", "localhost:4321"]);
 const TRUSTED_FETCH_SITES = new Set(["same-origin", "none"]);
 
 function isPublicAsset(pathname: string): boolean {
@@ -42,6 +41,10 @@ function normalizeHost(value: string | null): string | null {
   return value.split(",")[0].trim().toLowerCase();
 }
 
+function isAllowedHost(value: string): boolean {
+  return /^[a-z0-9.-]+(?::\d+)?$/i.test(value) || /^\[[a-f0-9:]+\](?::\d+)?$/i.test(value);
+}
+
 function getAllowedOrigins(request: Request): Set<string> {
   const requestUrl = new URL(request.url);
   const protocol = getForwardedProtocol(request, requestUrl.protocol.replace(":", ""));
@@ -54,9 +57,8 @@ function getAllowedOrigins(request: Request): Set<string> {
 
   const origins = new Set<string>();
   for (const currentHost of hosts) {
-    if (!TRUSTED_HOSTS.has(currentHost)) continue;
+    if (!isAllowedHost(currentHost)) continue;
     origins.add(`${protocol}://${currentHost}`);
-    if (currentHost === "bod.billerickson.net") origins.add(`https://${currentHost}`);
     if (currentHost === "127.0.0.1:4321" || currentHost === "localhost:4321") origins.add(`http://${currentHost}`);
   }
 

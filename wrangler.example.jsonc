@@ -8,7 +8,7 @@
   },
   "routes": [
     {
-      "pattern": "bod.billerickson.net",
+      "pattern": "bank-of-dad.yoursite.com",
       "custom_domain": true
     }
   ],
@@ -19,7 +19,7 @@
     {
       "binding": "DB",
       "database_name": "bank-of-dad",
-      "database_id": "93674c92-871f-41b6-8fd7-5f89ed16de34"
+      "database_id": "<your-d1-database-uuid>"
     }
   ]
 }
