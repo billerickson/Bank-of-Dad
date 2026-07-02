@@ -266,6 +266,10 @@ button.spend:hover {
   box-shadow: var(--shadow-soft);
 }
 
+.auth-card {
+  gap: 20px;
+}
+
 .stack {
   display: grid;
   gap: 16px;
@@ -308,6 +312,23 @@ button.spend:hover {
 .form-grid {
   display: grid;
   gap: 14px;
+}
+
+.setup-section {
+  display: grid;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-line);
+}
+
+.setup-section h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.kid-fields {
+  display: grid;
+  gap: 10px;
 }
 
 .field {

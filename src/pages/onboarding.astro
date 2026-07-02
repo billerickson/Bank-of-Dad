@@ -1,0 +1,96 @@
+---
+import BrandMark from "@/components/BrandMark.astro";
+import AppLayout from "@/layouts/AppLayout.astro";
+import { SESSION_COOKIE, createSessionValue, getSessionCookieOptions, hashPassword } from "@/lib/auth";
+import { createInitialApp, getSecret } from "@/lib/db";
+
+export const prerender = false;
+
+let error = "";
+let kidValues = [""];
+
+if (Astro.request.method === "POST") {
+  const form = await Astro.request.formData();
+  const password = String(form.get("password") ?? "");
+  const confirmPassword = String(form.get("confirmPassword") ?? "");
+  const kids = form
+    .getAll("kids")
+    .map((value) => String(value).trim())
+    .filter(Boolean);
+
+  kidValues = kids.length > 0 ? kids : [""];
+
+  if (!password) {
+    error = "Enter a parent password.";
+  } else if (password !== confirmPassword) {
+    error = "The password confirmation does not match.";
+  } else if (kids.length === 0) {
+    error = "Add at least one kid before finishing setup.";
+  } else {
+    const secret = getSecret();
+    if (!secret) {
+      error = "SESSION_SECRET is missing. Add it locally in .dev.vars and in Cloudflare as a secret.";
+    } else {
+      const passwordHash = await hashPassword(password);
+      await createInitialApp({ passwordHash, kidNames: kids });
+      Astro.cookies.set(SESSION_COOKIE, await createSessionValue(secret), getSessionCookieOptions(Astro.request));
+      return Astro.redirect("/", 303);
+    }
+  }
+}
+---
+
+<AppLayout title="Set up" shell="auth">
+  <section class="panel auth-card stack">
+    <BrandMark size="lg" />
+    <div class="page-heading">
+      <p class="eyebrow">First run</p>
+      <h1>Set up your family bank.</h1>
+      <p>Create the shared parent password and add the kids who should appear in this private ledger.</p>
+    </div>
+
+    {error && <p class="alert alert--error">{error}</p>}
+
+    <form class="form-grid" method="post">
+      <section class="setup-section" aria-labelledby="password-heading">
+        <h2 id="password-heading">Parent password</h2>
+        <label class="field">
+          <span>Password</span>
+          <input name="password" type="password" autocomplete="new-password" required>
+        </label>
+        <label class="field">
+          <span>Confirm password</span>
+          <input name="confirmPassword" type="password" autocomplete="new-password" required>
+        </label>
+      </section>
+
+      <section class="setup-section" aria-labelledby="kids-heading">
+        <h2 id="kids-heading">Kids</h2>
+        <div class="kid-fields" data-kid-fields>
+          {kidValues.map((value) => (
+            <label class="field kid-field">
+              <span>Kid name</span>
+              <input name="kids" value={value} autocomplete="off" placeholder="Kid name">
+            </label>
+          ))}
+        </div>
+        <button class="secondary" type="button" data-add-kid>Add kid</button>
+      </section>
+
+      <button type="submit">Complete setup</button>
+    </form>
+  </section>
+
+  <script is:inline>
+    const addButton = document.querySelector("[data-add-kid]");
+    const fieldList = document.querySelector("[data-kid-fields]");
+
+    addButton?.addEventListener("click", () => {
+      const label = document.createElement("label");
+      label.className = "field kid-field";
+      label.innerHTML = '<span>Kid name</span><input name="kids" autocomplete="off" placeholder="Kid name">';
+      fieldList?.append(label);
+      label.querySelector("input")?.focus();
+    });
+  </script>
+</AppLayout>

@@ -1,0 +1,61 @@
+---
+import BrandMark from "@/components/BrandMark.astro";
+import Icon from "@/components/Icon.astro";
+import AppLayout from "@/layouts/AppLayout.astro";
+import {
+  SESSION_COOKIE,
+  createSessionValue,
+  getSessionCookieOptions,
+  verifyPassword
+} from "@/lib/auth";
+import { getSecret, getSettings } from "@/lib/db";
+
+export const prerender = false;
+
+let error = "";
+
+if (Astro.request.method === "POST") {
+  const form = await Astro.request.formData();
+  const password = String(form.get("password") ?? "");
+  const settings = await getSettings();
+  const isValid = settings ? await verifyPassword(password, settings.password_hash) : false;
+  const secret = getSecret();
+
+  if (isValid && secret) {
+    Astro.cookies.set(SESSION_COOKIE, await createSessionValue(secret), getSessionCookieOptions(Astro.request));
+    return Astro.redirect("/", 303);
+  }
+
+  error = "That password did not work. Try again.";
+}
+---
+
+<AppLayout title="Login" shell="auth">
+  <section class="panel auth-card stack">
+    <BrandMark size="lg" />
+    <div class="page-heading">
+      <p class="eyebrow">Private family ledger</p>
+      <h1>Unlock Bank of Dad.</h1>
+      <p>Enter the shared parent password to view balances and add ledger entries.</p>
+    </div>
+
+    {error && <p class="alert alert--error" id="login-error">{error}</p>}
+
+    <form class="form-grid" method="post">
+      <label class="field">
+        <span>Parent password</span>
+        <input
+          name="password"
+          type="password"
+          autocomplete="current-password"
+          required
+          aria-describedby={error ? "login-error" : undefined}
+        >
+      </label>
+      <button type="submit">
+        <Icon name="lock" />
+        Unlock
+      </button>
+    </form>
+  </section>
+</AppLayout>

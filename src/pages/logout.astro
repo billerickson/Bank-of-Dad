@@ -1,0 +1,8 @@
+---
+import { SESSION_COOKIE, getClearSessionCookieOptions } from "@/lib/auth";
+
+export const prerender = false;
+
+Astro.cookies.set(SESSION_COOKIE, "", getClearSessionCookieOptions(Astro.request));
+return Astro.redirect("/login", 303);
+---
