@@ -1,6 +1,7 @@
 export const SESSION_COOKIE = "bod_session";
 
-const PASSWORD_ITERATIONS = 210_000;
+const PASSWORD_ITERATIONS = 25_000;
+const MIN_PASSWORD_ITERATIONS = 10_000;
 const SESSION_DAYS = 30;
 const encoder = new TextEncoder();
 
@@ -62,7 +63,7 @@ export async function verifyPassword(password: string, storedHash: string): Prom
   if (algorithm !== "pbkdf2-sha256" || !iterationsRaw || !saltRaw || !hashRaw) return false;
 
   const iterations = Number.parseInt(iterationsRaw, 10);
-  if (!Number.isFinite(iterations) || iterations < 100_000) return false;
+  if (!Number.isFinite(iterations) || iterations < MIN_PASSWORD_ITERATIONS) return false;
 
   const salt = base64UrlToBytes(saltRaw);
   const expected = base64UrlToBytes(hashRaw);

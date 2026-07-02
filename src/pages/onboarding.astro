@@ -31,10 +31,23 @@ if (Astro.request.method === "POST") {
     if (!secret) {
       error = "SESSION_SECRET is missing. Add it locally in .dev.vars and in Cloudflare as a secret.";
     } else {
-      const passwordHash = await hashPassword(password);
-      await createInitialApp({ passwordHash, kidNames: kids });
-      Astro.cookies.set(SESSION_COOKIE, await createSessionValue(secret), getSessionCookieOptions(Astro.request));
-      return Astro.redirect("/", 303);
+      let setupStep = "preparing setup";
+      try {
+        setupStep = "creating the session";
+        const sessionValue = await createSessionValue(secret);
+        setupStep = "hashing the password";
+        const passwordHash = await hashPassword(password);
+        setupStep = "saving family setup";
+        await createInitialApp({ passwordHash, kidNames: kids });
+        Astro.cookies.set(SESSION_COOKIE, sessionValue, getSessionCookieOptions(Astro.request));
+        return Astro.redirect("/", 303);
+      } catch (cause) {
+        console.error("First-run onboarding failed", {
+          cause,
+          setupStep
+        });
+        error = `Setup failed while ${setupStep}. Please try again.`;
+      }
     }
   }
 }
