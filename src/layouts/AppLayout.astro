@@ -1,13 +1,7 @@
 ---
 import BrandMark from "@/components/BrandMark.astro";
 import Icon from "@/components/Icon.astro";
-import "@fontsource/ibm-plex-sans/latin-400.css";
-import "@fontsource/ibm-plex-sans/latin-500.css";
-import "@fontsource/ibm-plex-sans/latin-600.css";
-import "@fontsource/ibm-plex-sans/latin-700.css";
-import "@fontsource/ibm-plex-mono/latin-500.css";
-import "@fontsource/ibm-plex-mono/latin-700.css";
-import "@/styles/global.css";
+import appStylesUrl from "@/styles/app.css?url";
 
 interface Props {
   title?: string;
@@ -17,6 +11,7 @@ interface Props {
 
 const { title = "Bank of Dad", shell = "app", current = "none" } = Astro.props;
 const pageTitle = title === "Bank of Dad" ? title : `${title} - Bank of Dad`;
+const appStylesHref = `${appStylesUrl}?v=${__APP_BUILD_ID__}`;
 ---
 
 <!doctype html>
@@ -27,6 +22,7 @@ const pageTitle = title === "Bank of Dad" ? title : `${title} - Bank of Dad`;
     <meta name="robots" content="noindex, nofollow">
     <meta name="theme-color" content="#0E1726">
     <meta name="description" content="A private family chore and spending ledger.">
+    <link rel="stylesheet" href={appStylesHref}>
     <link rel="manifest" href="/manifest.webmanifest">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <title>{pageTitle}</title>

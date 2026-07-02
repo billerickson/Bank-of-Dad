@@ -3,6 +3,11 @@ import cloudflare from "@astrojs/cloudflare";
 
 export default defineConfig({
   output: "server",
+  vite: {
+    define: {
+      __APP_BUILD_ID__: JSON.stringify(Date.now().toString())
+    }
+  },
   security: {
     checkOrigin: false,
     allowedDomains: [

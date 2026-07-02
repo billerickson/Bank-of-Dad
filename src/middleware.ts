@@ -12,10 +12,11 @@ function isPublicAsset(pathname: string): boolean {
   return PUBLIC_PATHS.has(pathname) || PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 }
 
-function withNoIndex(response: Response): Response {
+function withNoIndex(response: Response, options: { noStore?: boolean } = {}): Response {
   response.headers.set("X-Robots-Tag", "noindex, nofollow");
   response.headers.set("Referrer-Policy", "no-referrer");
   response.headers.set("X-Content-Type-Options", "nosniff");
+  if (options.noStore) response.headers.set("Cache-Control", "no-store");
   return response;
 }
 
@@ -85,7 +86,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   const { pathname } = new URL(context.request.url);
 
   if (!isAllowedFormOrigin(context.request)) {
-    return withNoIndex(new Response("Form submission origin is not allowed.", { status: 403 }));
+    return withNoIndex(new Response("Form submission origin is not allowed.", { status: 403 }), { noStore: true });
   }
 
   if (isPublicAsset(pathname)) {
@@ -100,20 +101,20 @@ export const onRequest = defineMiddleware(async (context, next) => {
   context.locals.isAuthenticated = isAuthenticated;
 
   if (!isInitialized && pathname !== "/onboarding") {
-    return withNoIndex(context.redirect("/onboarding", 303));
+    return withNoIndex(context.redirect("/onboarding", 303), { noStore: true });
   }
 
   if (isInitialized && pathname === "/onboarding") {
-    return withNoIndex(context.redirect("/", 303));
+    return withNoIndex(context.redirect("/", 303), { noStore: true });
   }
 
   if (isInitialized && !isAuthenticated && pathname !== "/login") {
-    return withNoIndex(context.redirect("/login", 303));
+    return withNoIndex(context.redirect("/login", 303), { noStore: true });
   }
 
   if (isInitialized && isAuthenticated && pathname === "/login") {
-    return withNoIndex(context.redirect("/", 303));
+    return withNoIndex(context.redirect("/", 303), { noStore: true });
   }
 
-  return withNoIndex(await next());
+  return withNoIndex(await next(), { noStore: true });
 });
