@@ -298,7 +298,7 @@ button.spend:hover {
   margin: 0;
   color: var(--color-muted);
   font-size: 0.74rem;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -437,7 +437,7 @@ textarea {
   color: #ffffff;
   background: var(--color-brand);
   border-radius: 999px;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .account-row__body {
@@ -460,7 +460,7 @@ textarea {
 
 .account-row__amount {
   font-size: 1.16rem;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .back-link {
@@ -498,7 +498,7 @@ textarea {
 .balance {
   margin: 0;
   font-size: clamp(2.8rem, 15vw, 4.4rem);
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1;
 }
 
@@ -532,7 +532,7 @@ textarea {
   color: var(--color-muted);
   border-bottom: 1px solid var(--color-line);
   font-size: 0.68rem;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -564,7 +564,7 @@ textarea {
 }
 
 .transaction-row__amount {
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .transaction-row--save .transaction-row__amount,
@@ -617,7 +617,7 @@ textarea {
   border: 1px solid rgba(216, 163, 26, 0.4);
   border-radius: 999px;
   font-family: var(--font-number);
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .interest-summary {
